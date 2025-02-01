@@ -2,7 +2,7 @@ include ../Include.mk
 
 # Edit the following line as needed, to point at a clone of repo:
 #    https://github.com/rsnikhil/Learn_Bluespec_and_RISCV_Design
-BOOK_REPO ?= $(HOME)/Git/Learn_Bluespec_and_RISCV_Design
+BOOK_REPO ?= $(HOME)/Documents/Code/Learn_Bluespec_and_RISCV_Design
 
 
 

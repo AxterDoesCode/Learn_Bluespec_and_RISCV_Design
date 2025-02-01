@@ -29,6 +29,11 @@ module mkTop (Empty);
 				   instr:    ?};
 
 	    $display ("mem_req =  ", fshow (mem_req));
+	    $display ("mem_req =  ", mem_req);
+	    $display ("mem_req =  ", fshow_Mem_Req (mem_req));
+	    $display ("mem_req.req_type =  ", fshow_Mem_Req_Type (mem_req.req_type));
+        mem_req.req_type = funct5_STORE;
+	    $display ("mem_req.req_type =  ", fshow_Mem_Req_Type (mem_req.req_type));
 	 endaction
       endseq);
 
