@@ -4,7 +4,7 @@ module mkTop (Empty);
    Bit #(32) pc_val = 32'h_8000_1234;
 
    // Try compile-link-run with each of these variations, one by one
-   Bit #(12) page_offset = pc_val [11:0];
+    Bit #(12) page_offset = pc_val [11:0];
    // Bit #(12) page_offset = pc_val [10:0];
    // Bit #(12) page_offset = pc_val [31:20];
    // Bit #(12) page_offset = pc_val [32:20];
