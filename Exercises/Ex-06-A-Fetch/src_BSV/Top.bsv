@@ -5,8 +5,6 @@ package Top;
 
 import StmtFSM :: *;
 import FIFOF   :: *;
-import LFSR    :: *;
-import GetPut  :: *;
 
 // ----------------
 // Imports from 'vendor' libs
@@ -26,7 +24,14 @@ import Inter_Stage  :: *;
 import Fn_Fetch     :: *;
 
 // ****************************************************************
-   function Action a_req (Bit #(XLEN) pc, Bit #(64) inum, FIFOF #(Mem_Req) f_reqs);
+
+(* synthesize *)
+module mkTop (Empty);
+
+   FIFOF #(Mem_Req) f_reqs <- mkFIFOF;
+   FIFOF #(Mem_Rsp) f_rsps <- mkFIFOF;
+
+   function Action a_req (Bit #(XLEN) pc, Bit #(64) inum);
       action
 	 let predicted_pc = 0;            // Only relevant in Fife
 	 let epoch        = 0;            // Only relevant in Fife
@@ -41,31 +46,12 @@ import Fn_Fetch     :: *;
       endaction
    endfunction
 
-   function Action a_rsp (FIFOF #(Mem_Rsp) f_rsps);
+   function Action a_rsp ();
       action
 	 let mem_rsp <- pop_o (to_FIFOF_O (f_rsps));
 	 $display ("mem_rsp: ", fshow_Mem_Rsp (mem_rsp, True));
       endaction
    endfunction
-
-(* synthesize *)
-module mkTop (Empty);
-
-   FIFOF #(Mem_Req) f_reqs <- mkFIFOF;
-   FIFOF #(Mem_Rsp) f_rsps <- mkFIFOF;
-
-   LFSR#(Bit#(16)) lfsr <- mkLFSR_16;
-
-   Reg#(Bool) starting <- mkReg(True);
-
-   rule start(starting);
-        starting <= False;
-        lfsr.seed('h11);
-   endrule: start
-
-   rule run(!starting);
-        lfsr.next;
-   endrule: run
 
    // Instantiate the memory model used by Drum and Fife.
    // We "stub out" the first five parameters and only use the last two.
@@ -77,10 +63,6 @@ module mkTop (Empty);
 						    dummy_FIFOF_O,
 						    dummy_FIFOF_I,
 						    dummy_FIFOF_O,
-
-                            // There seems to be more params needed
-                            dummy_FIFOF_O,
-                            dummy_FIFOF_I,
 
 						    // DMem interface
 						    to_FIFOF_O (f_reqs),
@@ -94,14 +76,8 @@ module mkTop (Empty);
 	    mems_devices.init (init_params);
 	 endaction
 
-	 a_req ({'h_8000, lfsr.value}, 1, f_reqs);
-	 a_rsp(f_rsps);
-	 a_req ({'h_8000, lfsr.value}, 1, f_reqs);
-	 a_rsp(f_rsps);
-	 a_req ({'h_8000, lfsr.value}, 1, f_reqs);
-	 a_rsp(f_rsps);
-	 a_req ({'h_8000, lfsr.value}, 1, f_reqs);
-	 a_rsp(f_rsps);
+	 a_req ('h_8000_0000, 1);
+	 a_rsp;
       endseq);
 
 endmodule
