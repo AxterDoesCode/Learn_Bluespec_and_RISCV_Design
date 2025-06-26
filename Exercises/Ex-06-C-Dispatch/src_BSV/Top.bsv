@@ -71,12 +71,18 @@ module mkTop (Empty);
 	 $display ("fn_Dispatch output:\n    ", fshow (y2));
 	 $display ("fn_Dispatch: to_Retire:\n",
 		   fshow_RR_to_Retire (y2.to_Retire));
+	 if (y2.to_Retire.exec_tag == EXEC_TAG_CONTROL) begin
 	 $display ("fn_Dispatch: to_EX_Control:\n",
-		   fshow_RR_to_EX_Control (y2.to_EX_Control));
+		 fshow_RR_to_EX_Control (y2.to_EX_Control));
+	 end
+	 if (y2.to_Retire.exec_tag == EXEC_TAG_INT) begin
 	 $display ("fn_Dispatch: to_EX:\n",
 		   fshow_RR_to_EX (y2.to_EX));
+	 end
+	 if(y2.to_Retire.exec_tag == EXEC_TAG_DMEM) begin
 	 $display ("fn_Dispatch: to_EX_DMem:\n",
-		   fshow_Mem_Req (y2.to_EX_DMem));
+		 fshow_Mem_Req (y2.to_EX_DMem));
+	 end
       endaction
    endfunction
 
@@ -90,6 +96,8 @@ module mkTop (Empty);
 						    dummy_FIFOF_O,
 						    dummy_FIFOF_I,
 						    dummy_FIFOF_O,
+						    dummy_FIFOF_O,
+						    dummy_FIFOF_I,
 
 						    // DMem interface
 						    to_FIFOF_O (f_reqs),
@@ -103,7 +111,9 @@ module mkTop (Empty);
 	    mems_devices.init (init_params);
 	 endaction
 
-	 a_req ('h_8000_0000, 1);
+	 a_req ('h_9000_0000, 1);
+	 a_rsp;
+	 a_req ('h_8000_0002, 1);
 	 a_rsp;
       endseq);
 

@@ -98,6 +98,8 @@ module mkTop (Empty);
 						    dummy_FIFOF_O,
 						    dummy_FIFOF_I,
 						    dummy_FIFOF_O,
+						    dummy_FIFOF_O,
+						    dummy_FIFOF_I,
 
 						    // DMem interface
 						    to_FIFOF_O (f_reqs),
