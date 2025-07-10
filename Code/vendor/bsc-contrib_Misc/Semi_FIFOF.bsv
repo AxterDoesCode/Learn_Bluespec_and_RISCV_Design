@@ -1,10 +1,12 @@
 // Copyright (c) 2017-2022 Bluespec, Inc.  All Rights Reserved
+//
+// SPDX-License-Identifier: BSD-3-Clause
 
-package Semi_FIFOF;
-
-// ================================================================
 // Separate interfaces for input-side and output-side of FIFOF.
 // Conversion functions to these, from FIFOF interfaces.
+// mkConnection. Stubs.
+
+package Semi_FIFOF;
 
 // ================================================================
 // BSV library imports

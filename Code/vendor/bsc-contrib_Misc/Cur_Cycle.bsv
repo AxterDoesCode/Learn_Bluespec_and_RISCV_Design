@@ -1,14 +1,21 @@
-// Copyright (c) 2013-2022 Bluespec, Inc. All Rights Reserved.
+// Copyright (c) 2013-2024 Bluespec, Inc. All Rights Reserved.
+//
+// SPDX-License-Identifier: BSD-3-Clause
 
 package Cur_Cycle;
 
 // ================================================================
 // A convenience function to return the current cycle number during BSV simulations
+// The if-then-else is because in Verilog our $displays work on the
+// opposide edge (in the middle of the clock).
 
 ActionValue #(Bit #(32)) cur_cycle = actionvalue
-					Bit #(32) t <- $stime;
-					return t / 10;
-				     endactionvalue;
+                                        Bit #(32) t <- $stime;
+                                        if (genC)
+                                          return t / 10;
+                                        else
+                                          return (t + 5) / 10;
+                                     endactionvalue;
 
 // ================================================================
 // fa_debug_show_location
@@ -27,7 +34,6 @@ ActionValue #(Bit #(32)) cur_cycle = actionvalue
 function Action fa_debug_show_location (Integer verbosity);
    action
       if (verbosity != 0) begin
-	 $display ("    %m");
 	 $write ("    %0d: ", cur_cycle);
       end
    endaction

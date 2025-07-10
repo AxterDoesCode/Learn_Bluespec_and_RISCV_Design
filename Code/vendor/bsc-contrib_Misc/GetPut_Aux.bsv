@@ -1,9 +1,10 @@
 // Copyright (c) 2013-2022 Bluespec, Inc. All Rights Reserved.
+//
+// SPDX-License-Identifier: BSD-3-Clause
+
+// Misc. additional useful definitions on FIFOs, Gets and Puts
 
 package GetPut_Aux;
-
-// ================================================================
-// Misc. additional useful definitions on FIFOs, Gets and Puts
 
 // ================================================================
 // BSV library imports

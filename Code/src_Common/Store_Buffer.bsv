@@ -144,28 +144,29 @@ module mkStore_Buffer #(FIFOF_O #(Mem_Req)               fo_req_from_CPU,
 
    Reg #(FSM_State) rg_fsm_state <- mkReg (FSM_STATE_IDLE);
 
-   Action a_show_store_buffer =
-   action
-      wr_log_cont (rg_logfile, $format ("    store_buffer:"));
-      for (Integer j = 0; j < i_store_buffer_size; j = j+1)
-	 if (fromInteger (j) < rg_free_ix)
-	    wr_log_cont (rg_logfile,
-			 $format ("      %0d: ", j, fshow_Mem_Req (vrg_sb [j])));
-   endaction;
+   function Action fa_show_store_buffer (File file);
+      action
+	 wr_log_cont (file, $format ("    store_buffer:"));
+	 for (Integer j = 0; j < i_store_buffer_size; j = j+1)
+	    if (fromInteger (j) < rg_free_ix)
+	       wr_log_cont (file, $format ("      %0d: ", j, fshow_Mem_Req (vrg_sb [j])));
+      endaction
+   endfunction
 
    // ================================================================
    // Help functions
 
    // Sweep the store-buffer from oldest to newest, collecting
    // all updates for the same 64-bit word as addr arg.
-   function Tuple2 #(Bit #(64), Bit #(64)) fn_collect_updates (Bit #(64) addr);
+   function Tuple2 #(Bit #(64), Bit #(64)) fn_collect_updates (Bit #(64) addr, Epoch epoch);
       Bit #(64) data = 0;
       Bit #(64) mask = 0;
       for (Integer j = (i_store_buffer_size - 1); j >= 0; j = j - 1) begin
-	 Bool valid = (fromInteger (j) < rg_free_ix);
-	 Bool addr_match = (addr [63:3] == vrg_sb [j].addr [63:3]);
+	 Bool valid       = (fromInteger (j) < rg_free_ix);
+	 Bool addr_match  = (addr [63:3] == vrg_sb [j].addr [63:3]);
+	 Bool epoch_match = (epoch == vrg_sb [j].epoch);
 	 match { .dataj, .maskj } = fn_lane_align (vrg_sb [j]);
-	 if (valid && addr_match) begin
+	 if (valid && addr_match && epoch_match) begin
 	    mask = mask | maskj;
 	    data = (data & (~ maskj)) | dataj;
 	 end
@@ -204,8 +205,8 @@ module mkStore_Buffer #(FIFOF_O #(Mem_Req)               fo_req_from_CPU,
 					 instr:    cur_CPU_req.instr};
 
    // Net update and mask in store-buffer for given addr
-   match { .upd_data, .upd_mask } = fn_collect_updates (cur_CPU_req.addr);
-
+   match { .upd_data, .upd_mask } = fn_collect_updates (cur_CPU_req.addr,
+							cur_CPU_req.epoch);
    // LSB-aligned mask for data
    let lsb_mask = fn_mask (cur_CPU_req.size);
    // Lane-aligned mask for data
@@ -259,7 +260,7 @@ module mkStore_Buffer #(FIFOF_O #(Mem_Req)               fo_req_from_CPU,
 
       if (verbosity != 0) begin
 	 wr_log (rg_logfile, $format ("Spec_Store_Buf.rl_wr_req"));
-	 a_show_store_buffer;
+	 fa_show_store_buffer (rg_logfile);
 	 wr_log_cont (rg_logfile,
 		      $format ("    %0d: ", rg_free_ix, fshow_Mem_Req (cur_CPU_req),
 			       " (new)"));
@@ -278,17 +279,14 @@ module mkStore_Buffer #(FIFOF_O #(Mem_Req)               fo_req_from_CPU,
 	    wr_log (rg_logfile, $format ("Spec_Store_Buf.rl_commit_discard"));
 	    wr_log_cont (rg_logfile, $format ("    ", fshow_Mem_Req (vrg_sb [0])));
 	    wr_log_cont (rg_logfile, $format ("    new free_ix: %0d", rg_free_ix - 1));
+	    wr_log_cont (rg_logfile, $format ("    discarding store_buffer [0]"));
+	    fa_show_store_buffer (rg_logfile);
 	 end
 
 	 if (x.commit) begin
 	    f_req_to_mem.enq (vrg_sb [0]);
 	    if (verbosity != 0)
 	       wr_log_cont (rg_logfile, $format ("    commit to mem"));
-	 end
-
-	 if (verbosity != 0) begin
-	    wr_log_cont (rg_logfile, $format ("    discarding store_buffer [0]"));
-	    a_show_store_buffer;
 	 end
 
 	 // Shift up the store buffer
@@ -308,10 +306,6 @@ module mkStore_Buffer #(FIFOF_O #(Mem_Req)               fo_req_from_CPU,
    // Discard (drain) write-responses from memory
    rule rl_mem_wr_rsp (cur_mem_rsp.req_type == funct5_STORE);
       let rsp <- pop (f_rsp_from_mem);
-
-      if (verbosity != 0)
-	 wr_log (rg_logfile, $format ("Spec_Store_Buf.rl_mem_wr_rsp (discard): ",
-				      fshow_Mem_Rsp (rsp, False)));
    endrule
 
    // ----------------------------------------------------------------
@@ -331,7 +325,7 @@ module mkStore_Buffer #(FIFOF_O #(Mem_Req)               fo_req_from_CPU,
 
       if (verbosity != 0) begin
 	 wr_log (rg_logfile, $format ("Spec_Store_Buf.rl_rd_req_no_mem"));
-	 a_show_store_buffer;
+	 fa_show_store_buffer (rg_logfile);
          wr_log_cont (rg_logfile, $format ("    upd_data: %016h", upd_data));
          wr_log_cont (rg_logfile, $format ("    upd_mask: %016h", upd_mask));
          wr_log_cont (rg_logfile, $format ("    lsb_mask: %016h", lsb_mask));

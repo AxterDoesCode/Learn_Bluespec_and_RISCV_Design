@@ -1,11 +1,12 @@
 // Copyright (c) 2016-2019 Bluespec, Inc. All Rights Reserved.
+//
+// SPDX-License-Identifier: BSD-3-Clause
 
 // EdgeFIFOFs are 1-element FIFOFs used as generic interfaces by IPs
 // where they connect to interconnect fabrics.  The overall interface
 // is a standard FIFOF interface.  The IP-side is guarded.  The
 // Fabric-side is unguarded, so that it's easy to attach transactors
 // for some particular bus interface such as AXI4-Lite, AHB-Lite, etc.
-
 
 package EdgeFIFOFs;
 
@@ -15,10 +16,10 @@ package EdgeFIFOFs;
 import FIFOF :: *;
 
 // ================================================================
-// FIFOFs for Master IPs.
+// FIFOFs for IPs that send requests (M = manager, master)
 // enq (IP-side) is guarded, deq (Fabric-side) is not.
 
-module mkMaster_EdgeFIFOF (FIFOF #(t))
+module mkM_EdgeFIFOF (FIFOF #(t))
    provisos (Bits #(t, tsz));
 
    Integer port_deq   = 0;
@@ -65,10 +66,10 @@ module mkMaster_EdgeFIFOF (FIFOF #(t))
 endmodule
 
 // ================================================================
-// For Slave IPs.
+// FIFOFs for IPs that receive requests (S = subordinate, slave)
 // enq (Fabric-side) is unguarded, deq (IP-side) is guarded.
 
-module mkSlave_EdgeFIFOF (FIFOF #(t))
+module mkS_EdgeFIFOF (FIFOF #(t))
    provisos (Bits #(t, tsz));
 
    Integer port_deq   = 0;
